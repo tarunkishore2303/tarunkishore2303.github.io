@@ -18,7 +18,7 @@ function savePreference(key, value) {
 
 export function usePresentation() {
   const [theme, setTheme] = useState(
-    () => document.documentElement.dataset.theme || "light",
+    () => document.documentElement.dataset.theme || "dark",
   );
   const [motion, setMotion] = useState(
     () => document.documentElement.dataset.motion || "running",
@@ -26,7 +26,6 @@ export function usePresentation() {
   const [reducedMotion, setReducedMotion] = useState(
     () => matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
-  const themeOverride = useRef(savedPreference("portfolio-theme"));
   const motionOverride = useRef(savedPreference("portfolio-motion"));
 
   useEffect(() => {
@@ -35,7 +34,7 @@ export function usePresentation() {
     root.style.colorScheme = theme;
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", theme === "dark" ? "#111b18" : "#f4f1e9");
+      ?.setAttribute("content", theme === "dark" ? "#080808" : "#f6f4f3");
   }, [theme]);
 
   useEffect(() => {
@@ -73,12 +72,7 @@ export function usePresentation() {
   }, [motion]);
 
   useEffect(() => {
-    const colorQuery = matchMedia("(prefers-color-scheme: dark)");
     const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
-    const syncTheme = () => {
-      if (!themeOverride.current)
-        setTheme(colorQuery.matches ? "dark" : "light");
-    };
     const syncMotion = () => {
       setReducedMotion(motionQuery.matches);
       setMotion(
@@ -87,10 +81,8 @@ export function usePresentation() {
           : "running",
       );
     };
-    colorQuery.addEventListener("change", syncTheme);
     motionQuery.addEventListener("change", syncMotion);
     return () => {
-      colorQuery.removeEventListener("change", syncTheme);
       motionQuery.removeEventListener("change", syncMotion);
     };
   }, []);
@@ -101,7 +93,6 @@ export function usePresentation() {
     reducedMotion,
     toggleTheme() {
       const next = theme === "dark" ? "light" : "dark";
-      themeOverride.current = next;
       savePreference("portfolio-theme", next);
       setTheme(next);
     },
@@ -188,80 +179,6 @@ export function AppearanceControls({
           enable animations.
         </span>
       )}
-    </div>
-  );
-}
-
-export function DepthSurface({
-  as: Tag = "div",
-  className = "",
-  children,
-  ...props
-}) {
-  const frame = useRef(0);
-  const surface = useRef(null);
-  useEffect(() => () => cancelAnimationFrame(frame.current), []);
-  function reset() {
-    cancelAnimationFrame(frame.current);
-    frame.current = 0;
-    surface.current?.style.removeProperty("--tilt-x");
-    surface.current?.style.removeProperty("--tilt-y");
-  }
-  function move(event) {
-    if (
-      event.pointerType !== "mouse" ||
-      document.documentElement.dataset.motion === "paused" ||
-      matchMedia("(prefers-reduced-motion: reduce)").matches
-    )
-      return;
-    const element = event.currentTarget;
-    const rect = element.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 7;
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * -5;
-    cancelAnimationFrame(frame.current);
-    frame.current = requestAnimationFrame(() => {
-      element.style.setProperty("--tilt-x", `${y.toFixed(2)}deg`);
-      element.style.setProperty("--tilt-y", `${x.toFixed(2)}deg`);
-    });
-  }
-  return (
-    <Tag
-      {...props}
-      ref={surface}
-      className={`depth-surface ${className}`}
-      onPointerMove={move}
-      onPointerLeave={reset}
-      onPointerCancel={reset}
-    >
-      {children}
-    </Tag>
-  );
-}
-
-export function ServiceCore() {
-  return (
-    <div className="core-scene" aria-hidden="true">
-      <div className="core-orbit" />
-      <div className="service-core">
-        <div className="core-face core-front">
-          <span />
-          <span />
-          <span />
-          <i />
-        </div>
-        <div className="core-face core-back" />
-        <div className="core-face core-right">
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="core-face core-left" />
-        <div className="core-face core-top">
-          <span>TK / 01</span>
-          <i />
-        </div>
-        <div className="core-face core-bottom" />
-      </div>
     </div>
   );
 }

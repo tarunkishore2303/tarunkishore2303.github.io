@@ -1,56 +1,38 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  AppearanceControls,
-  DepthSurface,
-  ServiceCore,
-  usePresentation,
-} from "./presentation.jsx";
+import { AppearanceControls, usePresentation } from "./presentation.jsx";
+import AsciiArt from "./AsciiArt.jsx";
 
 const github = "https://github.com/tarunkishore2303";
 const stages = [
   {
     title: "Ready when you are.",
     detail: "Trace a request. Then take the broker offline and try again.",
-    x: 67,
-    y: 97,
   },
   {
     title: "01 / Validate the request",
     detail: "The API checks the workflow before accepting any work.",
-    x: 150,
-    y: 97,
   },
   {
     title: "02 / Commit state + intent",
     detail:
       "Execution state and the outbox event share one database transaction.",
-    x: 389,
-    y: 97,
   },
   {
     title: "03 / Deliver the event",
     detail: "The relay publishes committed intent to the broker.",
-    x: 389,
-    y: 226,
   },
   {
     title: "04 / Dispatch the work",
     detail: "The scheduler releases a task whose dependencies are satisfied.",
-    x: 150,
-    y: 226,
   },
   {
     title: "05 / Record the result",
     detail: "The worker commits the attempt result and its next event intent.",
-    x: 150,
-    y: 349,
   },
   {
     title: "Work complete. Evidence retained.",
     detail:
       "At-least-once delivery, with explicit duplicate handling. No exactly-once promise.",
-    x: 389,
-    y: 349,
   },
 ];
 
@@ -123,8 +105,7 @@ function RequestLab() {
   }
   const current = stages[stage];
   return (
-    <DepthSurface
-      as="figure"
+    <figure
       className={`request-lab ${stalled ? "stalled" : ""}`}
       id="request-lab"
     >
@@ -134,138 +115,16 @@ function RequestLab() {
           <i /> Interactive model
         </span>
       </div>
-      <div className="diagram-scene">
-        <div className="diagram-stage">
-          <svg
-            className="request-diagram"
-            viewBox="0 0 540 414"
-            role="img"
-            aria-labelledby="diagram-title diagram-description"
-          >
-            <title id="diagram-title">
-              Anatomy of a durable workflow request
-            </title>
-            <desc id="diagram-description">
-              API to PostgreSQL and outbox, through a relay and Kafka to a
-              scheduler and worker. Inspired by Conductor. An explanatory model,
-              not a live backend.
-            </desc>
-            <defs>
-              <pattern
-                id="dots"
-                width="18"
-                height="18"
-                patternUnits="userSpaceOnUse"
-              >
-                <circle
-                  cx="1"
-                  cy="1"
-                  r="0.7"
-                  fill="currentColor"
-                  opacity=".18"
-                />
-              </pattern>
-            </defs>
-            <rect width="540" height="414" fill="url(#dots)" />
-            <g className="diagram-traces" fill="none" strokeWidth="1.2">
-              <path d="M40 97H95m110 0h128M389 128v61M333 226H205M150 260v54M205 349h128" />
-              <path
-                d="M205 91h66q10 0 10-10V48q0-10 10-10h155q10 0 10 10v187q0 10-10 10h-30"
-                className="secondary-trace"
-              />
-              <path
-                d="M95 355H65q-10 0-10-10v-98q0-10 10-10h30"
-                className="secondary-trace"
-              />
-              <path d="m268 93 4 4-4 4m117 54 4 4 4-4m-126 67-4 4 4 4m-121 56 4 4 4-4m114 61 4 4-4 4" />
-            </g>
-            <text x="40" y="78" className="diagram-micro">
-              IN
-            </text>
-            <text x="244" y="80" className="diagram-micro">
-              TRANSACTION
-            </text>
-            <text x="408" y="164" className="diagram-micro">
-              OUTBOX
-            </text>
-            <text x="232" y="209" className="diagram-micro">
-              AT LEAST ONCE
-            </text>
-            <text x="65" y="294" className="diagram-micro">
-              EXECUTE
-            </text>
-            <text x="239" y="331" className="diagram-micro">
-              PERSIST
-            </text>
-            <g className={`diagram-node ${stage === 1 ? "active" : ""}`}>
-              <rect x="95" y="64" width="110" height="66" rx="3" />
-              <text x="107" y="83" className="diagram-number">
-                01
-              </text>
-              <text x="150" y="108" textAnchor="middle">
-                API
-              </text>
-            </g>
-            <g className={`diagram-node ${stage === 2 ? "active" : ""}`}>
-              <path d="M333 77q0-13 56-13t56 13v39q0 14-56 14t-56-14Z" />
-              <path d="M333 77q0 13 56 13t56-13" fill="none" />
-              <text x="389" y="111" textAnchor="middle">
-                PostgreSQL
-              </text>
-            </g>
-            <g
-              className={`diagram-node ${stage === 3 ? "active" : ""} ${offline ? "offline" : ""}`}
-            >
-              <rect x="333" y="193" width="112" height="66" rx="3" />
-              <text x="345" y="212" className="diagram-number">
-                03
-              </text>
-              <text x="389" y="237" textAnchor="middle">
-                Kafka
-              </text>
-              {offline && (
-                <path d="m423 201 10 10m0-10-10 10" stroke="currentColor" />
-              )}
-            </g>
-            <g className={`diagram-node ${stage === 4 ? "active" : ""}`}>
-              <rect x="95" y="193" width="110" height="66" rx="3" />
-              <text x="107" y="212" className="diagram-number">
-                04
-              </text>
-              <text x="150" y="237" textAnchor="middle">
-                Scheduler
-              </text>
-            </g>
-            <g className={`diagram-node ${stage === 5 ? "active" : ""}`}>
-              <rect x="95" y="316" width="110" height="66" rx="3" />
-              <text x="107" y="335" className="diagram-number">
-                05
-              </text>
-              <text x="150" y="360" textAnchor="middle">
-                Worker
-              </text>
-            </g>
-            <g
-              className={`diagram-node result-node ${stage === 6 ? "active" : ""}`}
-            >
-              <rect x="333" y="316" width="112" height="66" rx="3" />
-              <text x="345" y="335" className="diagram-number">
-                06
-              </text>
-              <text x="389" y="360" textAnchor="middle">
-                Result
-              </text>
-            </g>
-            <circle
-              className="request-packet"
-              cx={current.x}
-              cy={current.y}
-              r="5"
-            />
-            <g className="diagram-crosses" stroke="currentColor">
-              <path d="M16 16h10m-5-5v10m493-5h10m-5-5v10M16 399h10m-5-5v10m493-5h10m-5-5v10" />
-            </g>
-          </svg>
+      <div
+        className="ascii-stage"
+        role="img"
+        aria-label="ASCII model of a durable request moving through an API, database, broker, scheduler, and worker."
+      >
+        <AsciiArt variant="request" stage={stage} offline={offline} />
+        <div className="ascii-key mono">
+          <span>[@] PACKET</span>
+          <span>[=] ACTIVE</span>
+          <span>[!] HELD</span>
         </div>
       </div>
       <div className="lab-controls">
@@ -302,7 +161,7 @@ function RequestLab() {
         <span>SIMPLIFIED CONDUCTOR FLOW</span>
         <span>EXPLANATORY · NO LIVE TRAFFIC</span>
       </div>
-    </DepthSurface>
+    </figure>
   );
 }
 
@@ -353,79 +212,27 @@ const experience = [
 
 function ConductorArt() {
   return (
-    <DepthSurface className="conductor-art" aria-hidden="true">
-      <span className="mono art-eyebrow">A WORKFLOW, WITH A MEMORY.</span>
-      <svg viewBox="0 0 520 280" fill="none">
-        <g stroke="currentColor" opacity=".45">
-          <path d="M90 140h70l55-66h95l60 66h60M160 140l55 66h95l60-66M260 74v132" />
-          <circle cx="90" cy="140" r="24" />
-          <circle cx="215" cy="74" r="24" />
-          <circle cx="310" cy="74" r="24" />
-          <circle cx="215" cy="206" r="24" />
-          <circle cx="310" cy="206" r="24" />
-          <circle cx="430" cy="140" r="24" />
-        </g>
-        <g stroke="#f1d4a8" strokeWidth="2">
-          <path d="M90 140h70l55-66h95l60 66h60" />
-          <circle cx="90" cy="140" r="24" />
-          <circle cx="215" cy="74" r="24" />
-          <circle cx="310" cy="74" r="24" />
-        </g>
-        <g fill="#f1d4a8">
-          <circle cx="90" cy="140" r="4" />
-          <circle cx="215" cy="74" r="4" />
-          <circle cx="310" cy="74" r="4" />
-        </g>
-        <g fill="#e88b63">
-          <circle cx="215" cy="206" r="5" />
-          <circle cx="310" cy="206" r="5" />
-        </g>
-        <text
-          x="215"
-          y="255"
-          textAnchor="middle"
-          fill="currentColor"
-          className="diagram-micro"
-        >
-          RETRY ≠ FORGET
-        </text>
-      </svg>
-      <ServiceCore />
+    <div className="conductor-art ascii-artwork" aria-hidden="true">
+      <span className="mono art-eyebrow">01 / DURABLE EXECUTION</span>
+      <AsciiArt variant="conductor" />
       <div className="art-bottom mono">
-        <span>STATE → INTENT → DELIVERY</span>
-        <span>01—06</span>
+        <span>STATE / INTENT / DELIVERY</span>
+        <span>CONDUCTOR</span>
       </div>
-    </DepthSurface>
+    </div>
   );
 }
 
 function ForgeArt() {
   return (
-    <DepthSurface className="forge-art" aria-hidden="true">
-      <span className="mono art-eyebrow">
-        A SMALLER CONTRACT. A CLEARER RESULT.
-      </span>
-      <div className="forge-papers">
-        <div className="forge-paper back-paper">
-          <span className="mono">02 / PROPOSAL</span>
-          <div className="code-lines">
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
-        </div>
-        <div className="forge-paper front-paper">
-          <span className="mono">03 / VERIFICATION</span>
-          <div className="verification-mark">✓</div>
-          <span className="mono">REVIEW → TEST → APPLY</span>
-        </div>
-      </div>
+    <div className="forge-art ascii-artwork" aria-hidden="true">
+      <span className="mono art-eyebrow">02 / A BOUNDED CONTRACT</span>
+      <AsciiArt variant="forge" />
       <div className="art-bottom mono">
-        <span>LOCAL DRAFTING / INDEPENDENT CHECKS</span>
-        <span>PYTHON + OLLAMA</span>
+        <span>DRAFT / VERIFY / APPLY</span>
+        <span>FORGERELAY</span>
       </div>
-    </DepthSurface>
+    </div>
   );
 }
 

@@ -17,10 +17,10 @@ async function setTheme(page, theme) {
   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 }
 
-test("theme follows the system until an explicit choice is saved", async ({
+test("theme starts dark regardless of system preference and preserves an explicit choice", async ({
   page,
 }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(themeButton(page)).toHaveAttribute("aria-pressed", "true");
@@ -30,6 +30,9 @@ test("theme follows the system until an explicit choice is saved", async ({
   expect(
     await page.evaluate(() => localStorage.getItem("portfolio-theme")),
   ).toBe("light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.emulateMedia({ colorScheme: "dark" });
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await themeButton(page).click();
@@ -74,6 +77,11 @@ test("reduced-motion preference starts with motion paused", async ({
   await expect(motionButton(page)).toHaveAttribute("aria-disabled", "true");
   await motionButton(page).click({ force: true });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "paused");
+  const art = page.locator("pre.ascii-request, .ascii-request pre").first();
+  await art.scrollIntoViewIfNeeded();
+  const frame = await art.getAttribute("data-frame");
+  await page.waitForTimeout(450);
+  await expect(art).toHaveAttribute("data-frame", frame);
   expect(
     await page.evaluate(
       () =>
@@ -95,60 +103,43 @@ test("reduced-motion preference starts with motion paused", async ({
   await expect(page.locator("html")).toHaveAttribute("data-motion", "running");
 });
 
-test("3D artwork animates, responds to a mouse, and stops when paused", async ({
+test("ASCII artwork advances while visible and freezes when paused or offscreen", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
+  const art = page.locator("pre.ascii-request, .ascii-request pre").first();
+  await art.scrollIntoViewIfNeeded();
+  await expect(art).toHaveAttribute("data-frame", /^\d+$/);
+  const initialFrame = await art.getAttribute("data-frame");
   await expect
-    .poll(() =>
-      page.evaluate(() =>
-        document
-          .getAnimations()
-          .some(
-            (animation) =>
-              animation.animationName === "core-hover" &&
-              animation.playState === "running",
-          ),
-      ),
-    )
-    .toBe(true);
-  const plate = page.locator("#request-lab");
-  const bounds = await plate.boundingBox();
-  await page.mouse.move(
-    bounds.x + bounds.width * 0.8,
-    bounds.y + bounds.height * 0.25,
-  );
-  await expect
-    .poll(() =>
-      plate.evaluate((element) => element.style.getPropertyValue("--tilt-y")),
-    )
-    .not.toBe("");
-  await page.mouse.move(20, 20);
-  await expect
-    .poll(() =>
-      plate.evaluate((element) => element.style.getPropertyValue("--tilt-y")),
-    )
-    .toBe("");
+    .poll(() => art.getAttribute("data-frame"))
+    .not.toBe(initialFrame);
   await motionButton(page).click();
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          document
-            .getAnimations()
-            .filter((animation) => animation.playState === "running").length,
-      ),
-    )
-    .toBe(0);
-  await page.mouse.move(
-    bounds.x + bounds.width * 0.8,
-    bounds.y + bounds.height * 0.25,
-  );
-  expect(
-    await plate.evaluate((element) => getComputedStyle(element).transform),
-  ).toBe("none");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "paused");
+  await art.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(100);
+  const pausedFrame = await art.getAttribute("data-frame");
+  await page.waitForTimeout(450);
+  await expect(art).toHaveAttribute("data-frame", pausedFrame);
+  await motionButton(page).click();
+  await art.scrollIntoViewIfNeeded();
+  await expect.poll(() => art.getAttribute("data-frame")).not.toBe(pausedFrame);
+  await page.locator("footer").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(100);
+  const offscreenFrame = await art.getAttribute("data-frame");
+  await page.waitForTimeout(450);
+  await expect(art).toHaveAttribute("data-frame", offscreenFrame);
+  const illustrations = page.locator("pre.ascii-frame");
+  await expect(illustrations).toHaveCount(3);
+  for (const illustration of await illustrations.all()) {
+    const text = await illustration.textContent();
+    expect(text).toMatch(/^[\x20-\x7E\r\n]*$/);
+    expect(
+      Math.max(...text.split(/\r?\n/).map((line) => line.length)),
+    ).toBeLessThanOrEqual(44);
+  }
 });
 
 test("unavailable local storage does not break theme or motion controls", async ({
@@ -169,8 +160,9 @@ test("unavailable local storage does not break theme or motion controls", async 
     });
   });
   await page.goto("/");
-  await themeButton(page).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await themeButton(page).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await motionButton(page).click();
   await expect(page.locator("html")).toHaveAttribute("data-motion", "paused");
   expect(errors).toEqual([]);
