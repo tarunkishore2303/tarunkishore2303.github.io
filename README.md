@@ -17,24 +17,27 @@ Open the printed local URL. `npm run build` generates the static site in `dist/`
 
 ```sh
 npm run build
+npm run test:unit
 npm test
 git diff --check
 ```
 
-The twelve browser tests use locally installed Microsoft Edge via Playwright. They serve the production build on port 4174 and cover request tracing, broker outage and recovery, interrupting an active trace, resume delivery, theme and motion preferences, unavailable local storage, ASCII frame advancement and suspension, mobile/tablet navigation, overflow from 280px to 2560px in both themes, keyboard navigation, and automated WCAG A/AA checks. Screenshots are saved in ignored `qa/screenshots/`.
+The twelve browser tests use locally installed Microsoft Edge via Playwright. They serve the production build on port 4174 and cover game keyboard/touch controls, all three deliveries, pause/resume/restart, resume delivery, theme and motion preferences, unavailable local storage, ASCII frame advancement and suspension, mobile/tablet navigation, overflow from 280px to 2560px in both themes, keyboard navigation, and automated WCAG A/AA checks. Five separate Node tests verify game boundaries, collisions, deliveries, pause state, and ASCII board invariants. Screenshots are saved in ignored `qa/screenshots/`.
 
 ## Theme and motion
 
 The header's moon/sun button switches between black/red and white/red themes. New visits default to black/red; an explicit choice persists in local storage. A small head script sets the initial appearance before React loads. Controls continue working for the current visit if storage is blocked.
 
-The motion button pauses/resumes presentation effects. Device reduced-motion preferences start with motion paused; resuming is unavailable while the device requests reduced motion, with an accessible explanation on the control. CSS also honors that setting. Three character-based illustrations update at eight frames per second: a request-routing fabric, a branching workflow, and a draft/verify/apply pipeline. Animation clocks stop when paused, offscreen, or the tab is hidden. The diagrams retain a static frame under reduced motion; request-state changes still work. ASCII is actual text in 44-column preformatted blocks, hidden from screen readers, with a descriptive label and textual state explanations for the interactive model. There is no 3D effect or WebGL dependency.
+The motion button pauses/resumes presentation effects. Device reduced-motion preferences start with motion paused; resuming animation is unavailable while the device requests reduced motion. The hero contains **Packet Runner**, a 31-column ASCII lane-crossing game: route `@` to `[ACK]`, avoid moving `#` congestion, and deliver three packets with unlimited retries. Start the game, then use arrow keys/WASD while the board is focused or use the on-screen D-pad. Space pauses. Reduced-motion mode uses deliberate turn-based moves rather than automatic ticks. Scrolling away or hiding the tab pauses the game; resume explicitly when returning.
+
+The two project illustrations update at eight frames per second and suspend when paused, offscreen, or hidden. ASCII is actual text in preformatted blocks, hidden from screen readers; the game supplies instructions, position text, and concise live event messages. There is no 3D effect or WebGL dependency.
 
 ## Content
 
 - Employment, selected outcomes, education, certifications, and email follow `Tarun_Kishore_SDE2_ATS_Resume_Updated.pdf`, supplied by the owner. Its unchanged copy is available at `public/Tarun_Kishore_Resume.pdf`.
 - Conductor and ForgeRelay descriptions follow their public READMEs, checked through the owner's authenticated `gh` CLI.
 - Project Loom is the resume's named project and is linked explicitly as Conductor's predecessor. The newer project is presented as its evolution.
-- The request diagram is a simplified interactive explanation of Conductor, not a running backend or production telemetry. It pauses at an unavailable broker and resumes the same pending request when the broker is restored.
+- Packet Runner is a playful backend-themed game, not a simulation of Conductor's execution semantics or live backend traffic.
 - Metrics are attributed to work at Rocket India and the owner's resume; they are not presented as portfolio traffic or personal-project benchmarks.
 - No LinkedIn URL was embedded in the supplied PDF, so no profile link was guessed.
 
@@ -44,8 +47,8 @@ The visual direction combines black, signal red, monospace character art, and ex
 
 The initial passes established the layout and durable request model, then improved text sizes, contrast, and recovery behavior. Subsequent review added theme/motion controls and broader responsive coverage. The current owner-directed revision replaces the depth effects with animated ASCII scenes and a black/red palette. See `REVIEW.md` for the handoff.
 
-## Publication gate
+## Publication
 
-**Local review only until the owner explicitly approves publication.** No deployment script or automatic deployment workflow is included. This branch has not been pushed.
+The owner authorized publication of the retro ASCII hero revision on November 8, 2026. Source is retained on `redesign/inside-the-request`; GitHub Pages serves the built output from `gh-pages`.
 
-At inspection, GitHub Pages was configured for `feature/3bhk-home-calculator`, repository root. Preserve the calculator route when eventually publishing; it is on a different branch and has not been modified. Publishing the new portfolio requires a deliberate deployment configuration change after approval. Never assume that pushing source to `main` will publish this build.
+Deployment retains the original `/home-calculator/` route from `feature/3bhk-home-calculator` unchanged. The calculator source branch remains intact. Rebuild and verify before updating `gh-pages`; source files alone are not the production site.

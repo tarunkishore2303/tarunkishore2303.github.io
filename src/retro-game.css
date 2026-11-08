@@ -1,0 +1,225 @@
+.retro-game {
+  align-self: center;
+  position: relative;
+}
+.retro-game .plate-heading {
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+.retro-game .plate-heading > .mono {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+.game-scoreboard {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 15px 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.game-scoreboard strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.game-board {
+  container-type: inline-size;
+  padding: 18px 12px;
+  position: relative;
+  outline: 0;
+}
+.game-board:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+.game-board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(transparent 0 3px, #00000005 3px 4px);
+}
+.game-board .ascii-game {
+  font-size: clamp(10px, 4cqi, 18px);
+  line-height: 1.2;
+  margin-inline: auto;
+  color: var(--muted);
+  width: max-content;
+  max-width: 100%;
+  letter-spacing: 0;
+  overflow: visible;
+}
+.game-player {
+  color: var(--ink);
+  font-weight: 500;
+}
+.game-hazard {
+  color: var(--accent);
+}
+.game-goal {
+  color: var(--accent);
+  font-weight: 500;
+}
+.game-help {
+  color: var(--muted);
+  font: 9px/1.7 var(--mono);
+  padding: 0 18px 14px;
+  display: flex;
+  gap: 8px 20px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.game-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding: 0 18px;
+}
+.game-actions button {
+  border: 1px solid var(--diagram-line);
+  color: var(--ink);
+  background: transparent;
+  padding: 11px 14px;
+  min-height: 44px;
+  font: 11px var(--mono);
+}
+.game-actions button:first-child {
+  background: #b41b2c;
+  border-color: #b41b2c;
+  color: white;
+}
+.game-actions button:hover:not(:disabled) {
+  background: var(--surface-raised);
+}
+.game-actions button:first-child:hover:not(:disabled) {
+  background: #921324;
+}
+.game-actions button:disabled,
+.game-dpad button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.game-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 18px 18px;
+  gap: 15px;
+}
+.game-controls .game-actions {
+  padding: 0;
+}
+.game-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(2, 36px);
+  gap: 4px;
+  padding: 14px 18px;
+  width: max-content;
+  margin-left: auto;
+}
+.game-dpad button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  font: 14px var(--mono);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  color: var(--ink);
+}
+.game-dpad button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.game-dpad button:active:not(:disabled) {
+  background: #b41b2c;
+  color: #fff;
+}
+.game-dpad button[aria-label="Move up"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+.game-dpad button[aria-label="Move left"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+.game-dpad button[aria-label="Move down"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+.game-dpad button[aria-label="Move right"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+.game-status {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.retro-game .lab-caption {
+  min-height: 88px;
+}
+.retro-game .plate-foot {
+  font-size: 8px;
+}
+@media (max-width: 620px) {
+  .retro-game .plate-heading {
+    padding: 15px 12px;
+  }
+  .retro-game .plate-heading > .mono {
+    font-size: 10px;
+  }
+  .game-scoreboard {
+    padding: 12px;
+    font-size: 9px;
+    gap: 8px;
+  }
+  .game-board {
+    padding: 14px 8px;
+  }
+  .game-help {
+    padding-inline: 12px;
+    font-size: 8px;
+  }
+  .game-actions {
+    padding-inline: 12px;
+  }
+  .game-actions button {
+    font-size: 10px;
+    padding-inline: 10px;
+  }
+  .game-dpad {
+    grid-template-columns: repeat(3, 40px);
+    grid-template-rows: repeat(2, 40px);
+    padding: 12px;
+  }
+  .game-dpad button {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .game-controls {
+    padding: 0 12px 14px;
+    flex-wrap: wrap;
+  }
+}
+
+.game-pause-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 12px 20px;
+  font-size: 12px;
+}
+.game-controls .trace-button {
+  min-width: 0;
+  gap: 20px;
+}

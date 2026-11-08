@@ -77,7 +77,7 @@ test("reduced-motion preference starts with motion paused", async ({
   await expect(motionButton(page)).toHaveAttribute("aria-disabled", "true");
   await motionButton(page).click({ force: true });
   await expect(page.locator("html")).toHaveAttribute("data-motion", "paused");
-  const art = page.locator("pre.ascii-request, .ascii-request pre").first();
+  const art = page.locator("pre.ascii-conductor");
   await art.scrollIntoViewIfNeeded();
   const frame = await art.getAttribute("data-frame");
   await page.waitForTimeout(450);
@@ -90,14 +90,16 @@ test("reduced-motion preference starts with motion paused", async ({
           .filter((animation) => animation.playState === "running").length,
     ),
   ).toBe(0);
-  // Reduced motion affects presentation, while the explanatory model still works.
-  await page
-    .locator("#request-lab")
-    .getByRole("button", { name: "Trace a request" })
-    .click();
-  await expect(page.locator("#request-lab figcaption")).toContainText(
-    "Work complete. Evidence retained.",
-  );
+  // Reduced motion freezes automatic updates while intentional game moves remain available.
+  const game = page.locator(".retro-game");
+  await game.getByRole("button", { name: "Start game", exact: true }).click();
+  const gameArt = game.locator("pre.ascii-game");
+  const beforeMove = await gameArt.textContent();
+  await game.locator(".game-board").press("ArrowLeft");
+  await expect(gameArt).not.toHaveText(beforeMove);
+  const afterMove = await gameArt.textContent();
+  await page.waitForTimeout(450);
+  await expect(gameArt).toHaveText(afterMove);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(motionButton(page)).toHaveAttribute("aria-disabled", "false");
   await expect(page.locator("html")).toHaveAttribute("data-motion", "running");
@@ -109,7 +111,7 @@ test("ASCII artwork advances while visible and freezes when paused or offscreen"
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/");
-  const art = page.locator("pre.ascii-request, .ascii-request pre").first();
+  const art = page.locator("pre.ascii-conductor");
   await art.scrollIntoViewIfNeeded();
   await expect(art).toHaveAttribute("data-frame", /^\d+$/);
   const initialFrame = await art.getAttribute("data-frame");
@@ -206,43 +208,81 @@ test("resume-backed content, local download, and production assets load", async 
   expect(failures).toEqual([]);
 });
 
-test("request completes, survives broker outage, and resumes on recovery", async ({
+test("retro game supports focused keyboard and touch controls without capturing page arrows", async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const lab = page.locator("#request-lab");
-  await lab.getByRole("button", { name: "Trace a request" }).click();
+  const game = page.locator(".retro-game");
+  const board = game.locator(".game-board");
+  const art = game.locator("pre.ascii-game");
+  await expect(game).toHaveAttribute("data-state", "ready");
+  await game.getByRole("button", { name: "Start game", exact: true }).click();
+  await expect(game).toHaveAttribute("data-state", "running");
+  await expect(board).toBeFocused();
+  const originalPosition = (await art.textContent()).indexOf("@");
+  expect(originalPosition).toBeGreaterThan(-1);
+  await board.press("ArrowLeft");
+  expect((await art.textContent()).indexOf("@")).toBe(originalPosition - 1);
+  await game.getByRole("button", { name: "Move right", exact: true }).click();
+  expect((await art.textContent()).indexOf("@")).toBe(originalPosition);
+  for (const direction of ["up", "down", "left", "right"]) {
+    await expect(
+      game.getByRole("button", { name: `Move ${direction}`, exact: true }),
+    ).toBeVisible();
+  }
+  // Arrows outside the board must keep their normal browser behavior.
+  await themeButton(page).focus();
+  await page.evaluate(() => {
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        window.outsideArrowPrevented = event.defaultPrevented;
+      },
+      { once: true },
+    );
+  });
+  await page.keyboard.press("ArrowLeft");
+  expect((await art.textContent()).indexOf("@")).toBe(originalPosition);
+  expect(await page.evaluate(() => window.outsideArrowPrevented)).toBe(false);
+  await game.getByRole("button", { name: "Restart game", exact: true }).click();
+  const routes = ["UUUUULUUUUUUUUU", "UUUUUUUUUUUUUU", "UUUUULUUUUUUUUU"];
+  for (const [delivery, route] of routes.entries()) {
+    for (const direction of route) {
+      await board.press(direction === "U" ? "ArrowUp" : "ArrowLeft");
+    }
+    await expect(game).toHaveAttribute("data-score", String(delivery + 1));
+  }
+  await expect(game).toHaveAttribute("data-state", "won");
+  await expect(game).toHaveAttribute("data-retries", "0");
   await expect(
-    lab.getByRole("button", { name: "Tracing request…" }),
+    game.getByRole("button", { name: "Move up", exact: true }),
   ).toBeDisabled();
-  await expect(lab.locator("figcaption")).toContainText(
-    "Work complete. Evidence retained.",
-  );
-  await lab.getByRole("switch", { name: "Broker offline" }).click();
-  await expect(lab.getByRole("switch")).toBeChecked();
-  await lab.getByRole("button", { name: "Trace a request" }).click();
-  await expect(lab.locator("figcaption")).toContainText(
-    "Broker unavailable. Intent survives.",
-  );
-  await expect(lab.getByRole("button", { name: "Trace again" })).toBeEnabled();
-  await lab.getByRole("switch").click();
-  await expect(lab.getByRole("switch")).not.toBeChecked();
-  await expect(lab.locator("figcaption")).toContainText(
-    "Work complete. Evidence retained.",
-  );
 });
 
-test("broker toggle safely interrupts an in-flight model", async ({ page }) => {
+test("retro game pauses, resumes, restarts, and respects global motion pause", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const lab = page.locator("#request-lab");
-  await lab.getByRole("button", { name: "Trace a request" }).click();
-  await lab.getByRole("switch").click();
-  await expect(lab.locator("figcaption")).toContainText("Ready when you are.");
-  await page.waitForTimeout(3500);
-  await expect(lab.locator("figcaption")).toContainText("Ready when you are.");
-  await expect(
-    lab.getByRole("button", { name: "Trace a request" }),
-  ).toBeEnabled();
+  const game = page.locator(".retro-game");
+  const art = game.locator("pre.ascii-game");
+  await game.getByRole("button", { name: "Start game", exact: true }).click();
+  await game.getByRole("button", { name: "Pause game", exact: true }).click();
+  await expect(game).toHaveAttribute("data-state", "paused");
+  const pausedBoard = await art.textContent();
+  await page.waitForTimeout(450);
+  await expect(art).toHaveText(pausedBoard);
+  await game.getByRole("button", { name: "Resume game", exact: true }).click();
+  await expect(game).toHaveAttribute("data-state", "running");
+  await motionButton(page).click();
+  await expect(game).toHaveAttribute("data-state", "paused");
+  const globallyPausedBoard = await art.textContent();
+  await page.waitForTimeout(450);
+  await expect(art).toHaveText(globallyPausedBoard);
+  await game.getByRole("button", { name: "Restart game", exact: true }).click();
+  await expect(game).toHaveAttribute("data-score", "0");
+  await expect(game).toHaveAttribute("data-retries", "0");
 });
 
 test("both themes fit small phones, tablets, landscape screens, and wide desktops", async ({
