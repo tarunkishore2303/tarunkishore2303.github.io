@@ -1,9 +1,41 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AppearanceControls, usePresentation } from "./presentation.jsx";
 import AsciiArt from "./AsciiArt.jsx";
-import RetroGame from "./RetroGame.jsx";
 
 const github = "https://github.com/tarunkishore2303";
+const stages = [
+  {
+    title: "Ready when you are.",
+    detail: "Trace a request. Then take the broker offline and try again.",
+  },
+  {
+    title: "01 / Validate the request",
+    detail: "The API checks the workflow before accepting any work.",
+  },
+  {
+    title: "02 / Commit state + intent",
+    detail:
+      "Execution state and the outbox event share one database transaction.",
+  },
+  {
+    title: "03 / Deliver the event",
+    detail: "The relay publishes committed intent to the broker.",
+  },
+  {
+    title: "04 / Dispatch the work",
+    detail: "The scheduler releases a task whose dependencies are satisfied.",
+  },
+  {
+    title: "05 / Record the result",
+    detail: "The worker commits the attempt result and its next event intent.",
+  },
+  {
+    title: "Work complete. Evidence retained.",
+    detail:
+      "At-least-once delivery, with explicit duplicate handling. No exactly-once promise.",
+  },
+];
+
 function Arrow({ diagonal = false, className = "" }) {
   return (
     <svg
@@ -18,6 +50,118 @@ function Arrow({ diagonal = false, className = "" }) {
         strokeWidth="1.5"
       />
     </svg>
+  );
+}
+
+function RequestLab() {
+  const [stage, setStage] = useState(0);
+  const [offline, setOffline] = useState(false);
+  const [running, setRunning] = useState(false);
+  const timers = useRef([]);
+  const clear = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+  };
+  useEffect(() => clear, []);
+  const stalled = offline && stage === 3;
+  function trace() {
+    clear();
+    setRunning(true);
+    setStage(1);
+    const last = offline ? 3 : 6;
+    for (let step = 2; step <= last; step++) {
+      timers.current.push(
+        setTimeout(
+          () => {
+            setStage(step);
+            if (step === last) setRunning(false);
+          },
+          (step - 1) * 650,
+        ),
+      );
+    }
+  }
+  function toggleBroker() {
+    clear();
+    if (stalled) {
+      setOffline(false);
+      setRunning(true);
+      for (let step = 4; step <= 6; step++) {
+        timers.current.push(
+          setTimeout(
+            () => {
+              setStage(step);
+              if (step === 6) setRunning(false);
+            },
+            (step - 3) * 650,
+          ),
+        );
+      }
+      return;
+    }
+    setRunning(false);
+    setOffline((value) => !value);
+    setStage(0);
+  }
+  const current = stages[stage];
+  return (
+    <figure
+      className={`request-lab ${stalled ? "stalled" : ""}`}
+      id="request-lab"
+    >
+      <div className="plate-heading">
+        <span className="mono">FIG. 01 / UNDER THE SURFACE</span>
+        <span className="model-label">
+          <i /> Interactive model
+        </span>
+      </div>
+      <div
+        className="ascii-stage"
+        role="img"
+        aria-label="ASCII model of a durable request moving through an API, database, broker, scheduler, and worker."
+      >
+        <AsciiArt variant="request" stage={stage} offline={offline} />
+        <div className="ascii-key mono">
+          <span>[@] PACKET</span>
+          <span>[=] ACTIVE</span>
+          <span>[!] HELD</span>
+        </div>
+      </div>
+      <div className="lab-controls">
+        <button className="trace-button" onClick={trace} disabled={running}>
+          {running
+            ? "Tracing request…"
+            : stage
+              ? "Trace again"
+              : "Trace a request"}
+          <Arrow />
+        </button>
+        <button
+          className="broker-control"
+          onClick={toggleBroker}
+          role="switch"
+          aria-checked={offline}
+          aria-label="Broker offline"
+        >
+          <span className={`switch-track ${offline ? "on" : ""}`} />
+          <span>Broker offline</span>
+        </button>
+      </div>
+      <figcaption className="lab-caption" aria-live="polite" aria-atomic="true">
+        <strong>
+          {stalled ? "Broker unavailable. Intent survives." : current.title}
+        </strong>
+        <span>
+          {stalled
+            ? "The committed outbox row stays in PostgreSQL for a later retry. Restore the broker to deliver this same request."
+            : current.detail}
+        </span>
+      </figcaption>
+      <div className="plate-foot mono">
+        <span>SIMPLIFIED CONDUCTOR FLOW</span>
+        <span>EXPLANATORY · NO LIVE TRAFFIC</span>
+      </div>
+    </figure>
   );
 }
 
@@ -191,7 +335,7 @@ function App() {
               <span className="location-divider">/</span> BUILDING SINCE 2023
             </div>
           </div>
-          <RetroGame />
+          <RequestLab />
         </section>
         <div className="stack-strip wrap">
           <span className="mono strip-label">MY WORKING LANGUAGE</span>
