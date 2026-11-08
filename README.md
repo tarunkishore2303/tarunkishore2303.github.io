@@ -21,7 +21,13 @@ npm test
 git diff --check
 ```
 
-Browser tests use locally installed Microsoft Edge via Playwright. They serve the production build on port 4174 and cover request tracing, broker outage and recovery, interrupting an active trace, resume delivery, mobile navigation, overflow from 320px to 1440px, keyboard navigation, and automated WCAG A/AA checks. Screenshots are saved in ignored `qa/screenshots/`.
+The twelve browser tests use locally installed Microsoft Edge via Playwright. They serve the production build on port 4174 and cover request tracing, broker outage and recovery, interrupting an active trace, resume delivery, theme and motion preferences, unavailable local storage, pointer-driven 3D effects, mobile/tablet navigation, overflow from 280px to 2560px in both themes, keyboard navigation, and automated WCAG A/AA checks. Screenshots are saved in ignored `qa/screenshots/`.
+
+## Theme and motion
+
+The header's moon/sun button switches between paper and dark forest themes. The initial theme follows the device setting; an explicit choice persists in local storage. A small head script sets the initial appearance before React loads. Controls continue working for the current visit if storage is blocked.
+
+The motion button pauses/resumes presentation effects. Device reduced-motion preferences start with motion paused; resuming is unavailable while the device requests reduced motion, with an accessible explanation on the control. CSS also honors that setting. Effects include layered perspective in the request diagram, mouse tilt on artwork, a six-face CSS service core, floating document planes, animated event traces, and section entrances. Essential text remains readable throughout animation. Static 3D geometry remains visible when motion is paused. There is no WebGL dependency or continuous JavaScript render loop.
 
 ## Content
 
@@ -36,7 +42,7 @@ Browser tests use locally installed Microsoft Edge via Playwright. They serve th
 
 The visual direction combines an engineering field manual, warm paper, forest ink, copper accents, and explanatory diagrams. References: [IBM technical diagrams](https://www.ibm.com/design/language/infographics/technical-diagrams/design/), [IBM grid](https://www.ibm.com/design/language/2x-grid/), and [Bartosz Ciechanowski's interactive explainers](https://ciechanow.ski/mechanical-watch/). All artwork in the implementation is original SVG/CSS; reference artwork was not copied.
 
-Pass one established the layout and request model. Pass two incorporated independent screenshot/source review: increased body and annotation sizes, improved contrast, removed generic slogans, corrected headline punctuation, and made broker restoration continue the pending request. See `REVIEW.md` for the handoff.
+Pass one established the layout and request model. Pass two incorporated independent screenshot/source review: increased body and annotation sizes, improved contrast, removed generic slogans, corrected headline punctuation, and made broker restoration continue the pending request. The next revision adds persistent dark mode, optional 3D motion, and broader responsive coverage. See `REVIEW.md` for the handoff.
 
 ## Publication gate
 

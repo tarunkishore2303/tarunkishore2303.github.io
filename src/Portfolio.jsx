@@ -1,4 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
+import {
+  AppearanceControls,
+  DepthSurface,
+  ServiceCore,
+  usePresentation,
+} from "./presentation.jsx";
 
 const github = "https://github.com/tarunkishore2303";
 const stages = [
@@ -117,7 +123,8 @@ function RequestLab() {
   }
   const current = stages[stage];
   return (
-    <figure
+    <DepthSurface
+      as="figure"
       className={`request-lab ${stalled ? "stalled" : ""}`}
       id="request-lab"
     >
@@ -127,128 +134,140 @@ function RequestLab() {
           <i /> Interactive model
         </span>
       </div>
-      <svg
-        className="request-diagram"
-        viewBox="0 0 540 414"
-        role="img"
-        aria-labelledby="diagram-title diagram-description"
-      >
-        <title id="diagram-title">Anatomy of a durable workflow request</title>
-        <desc id="diagram-description">
-          API to PostgreSQL and outbox, through a relay and Kafka to a scheduler
-          and worker. Inspired by Conductor. An explanatory model, not a live
-          backend.
-        </desc>
-        <defs>
-          <pattern
-            id="dots"
-            width="18"
-            height="18"
-            patternUnits="userSpaceOnUse"
+      <div className="diagram-scene">
+        <div className="diagram-stage">
+          <svg
+            className="request-diagram"
+            viewBox="0 0 540 414"
+            role="img"
+            aria-labelledby="diagram-title diagram-description"
           >
-            <circle cx="1" cy="1" r="0.7" fill="currentColor" opacity=".18" />
-          </pattern>
-        </defs>
-        <rect width="540" height="414" fill="url(#dots)" />
-        <g className="diagram-traces" fill="none" strokeWidth="1.2">
-          <path d="M40 97H95m110 0h128M389 128v61M333 226H205M150 260v54M205 349h128" />
-          <path
-            d="M205 91h66q10 0 10-10V48q0-10 10-10h155q10 0 10 10v187q0 10-10 10h-30"
-            className="secondary-trace"
-          />
-          <path
-            d="M95 355H65q-10 0-10-10v-98q0-10 10-10h30"
-            className="secondary-trace"
-          />
-          <path d="m268 93 4 4-4 4m117 54 4 4 4-4m-126 67-4 4 4 4m-121 56 4 4 4-4m114 61 4 4-4 4" />
-        </g>
-        <text x="40" y="78" className="diagram-micro">
-          IN
-        </text>
-        <text x="244" y="80" className="diagram-micro">
-          TRANSACTION
-        </text>
-        <text x="408" y="164" className="diagram-micro">
-          OUTBOX
-        </text>
-        <text x="232" y="209" className="diagram-micro">
-          AT LEAST ONCE
-        </text>
-        <text x="65" y="294" className="diagram-micro">
-          EXECUTE
-        </text>
-        <text x="239" y="331" className="diagram-micro">
-          PERSIST
-        </text>
-        <g className={`diagram-node ${stage === 1 ? "active" : ""}`}>
-          <rect x="95" y="64" width="110" height="66" rx="3" />
-          <text x="107" y="83" className="diagram-number">
-            01
-          </text>
-          <text x="150" y="108" textAnchor="middle">
-            API
-          </text>
-        </g>
-        <g className={`diagram-node ${stage === 2 ? "active" : ""}`}>
-          <path d="M333 77q0-13 56-13t56 13v39q0 14-56 14t-56-14Z" />
-          <path d="M333 77q0 13 56 13t56-13" fill="none" />
-          <text x="389" y="111" textAnchor="middle">
-            PostgreSQL
-          </text>
-        </g>
-        <g
-          className={`diagram-node ${stage === 3 ? "active" : ""} ${offline ? "offline" : ""}`}
-        >
-          <rect x="333" y="193" width="112" height="66" rx="3" />
-          <text x="345" y="212" className="diagram-number">
-            03
-          </text>
-          <text x="389" y="237" textAnchor="middle">
-            Kafka
-          </text>
-          {offline && (
-            <path d="m423 201 10 10m0-10-10 10" stroke="currentColor" />
-          )}
-        </g>
-        <g className={`diagram-node ${stage === 4 ? "active" : ""}`}>
-          <rect x="95" y="193" width="110" height="66" rx="3" />
-          <text x="107" y="212" className="diagram-number">
-            04
-          </text>
-          <text x="150" y="237" textAnchor="middle">
-            Scheduler
-          </text>
-        </g>
-        <g className={`diagram-node ${stage === 5 ? "active" : ""}`}>
-          <rect x="95" y="316" width="110" height="66" rx="3" />
-          <text x="107" y="335" className="diagram-number">
-            05
-          </text>
-          <text x="150" y="360" textAnchor="middle">
-            Worker
-          </text>
-        </g>
-        <g
-          className={`diagram-node result-node ${stage === 6 ? "active" : ""}`}
-        >
-          <rect x="333" y="316" width="112" height="66" rx="3" />
-          <text x="345" y="335" className="diagram-number">
-            06
-          </text>
-          <text x="389" y="360" textAnchor="middle">
-            Result
-          </text>
-        </g>
-        <circle
-          className="request-packet"
-          cx={current.x}
-          cy={current.y}
-          r="5"
-        />
-        <g className="diagram-crosses" stroke="currentColor">
-          <path d="M16 16h10m-5-5v10m493-5h10m-5-5v10M16 399h10m-5-5v10m493-5h10m-5-5v10" />
-        </g>
-      </svg>
+            <title id="diagram-title">
+              Anatomy of a durable workflow request
+            </title>
+            <desc id="diagram-description">
+              API to PostgreSQL and outbox, through a relay and Kafka to a
+              scheduler and worker. Inspired by Conductor. An explanatory model,
+              not a live backend.
+            </desc>
+            <defs>
+              <pattern
+                id="dots"
+                width="18"
+                height="18"
+                patternUnits="userSpaceOnUse"
+              >
+                <circle
+                  cx="1"
+                  cy="1"
+                  r="0.7"
+                  fill="currentColor"
+                  opacity=".18"
+                />
+              </pattern>
+            </defs>
+            <rect width="540" height="414" fill="url(#dots)" />
+            <g className="diagram-traces" fill="none" strokeWidth="1.2">
+              <path d="M40 97H95m110 0h128M389 128v61M333 226H205M150 260v54M205 349h128" />
+              <path
+                d="M205 91h66q10 0 10-10V48q0-10 10-10h155q10 0 10 10v187q0 10-10 10h-30"
+                className="secondary-trace"
+              />
+              <path
+                d="M95 355H65q-10 0-10-10v-98q0-10 10-10h30"
+                className="secondary-trace"
+              />
+              <path d="m268 93 4 4-4 4m117 54 4 4 4-4m-126 67-4 4 4 4m-121 56 4 4 4-4m114 61 4 4-4 4" />
+            </g>
+            <text x="40" y="78" className="diagram-micro">
+              IN
+            </text>
+            <text x="244" y="80" className="diagram-micro">
+              TRANSACTION
+            </text>
+            <text x="408" y="164" className="diagram-micro">
+              OUTBOX
+            </text>
+            <text x="232" y="209" className="diagram-micro">
+              AT LEAST ONCE
+            </text>
+            <text x="65" y="294" className="diagram-micro">
+              EXECUTE
+            </text>
+            <text x="239" y="331" className="diagram-micro">
+              PERSIST
+            </text>
+            <g className={`diagram-node ${stage === 1 ? "active" : ""}`}>
+              <rect x="95" y="64" width="110" height="66" rx="3" />
+              <text x="107" y="83" className="diagram-number">
+                01
+              </text>
+              <text x="150" y="108" textAnchor="middle">
+                API
+              </text>
+            </g>
+            <g className={`diagram-node ${stage === 2 ? "active" : ""}`}>
+              <path d="M333 77q0-13 56-13t56 13v39q0 14-56 14t-56-14Z" />
+              <path d="M333 77q0 13 56 13t56-13" fill="none" />
+              <text x="389" y="111" textAnchor="middle">
+                PostgreSQL
+              </text>
+            </g>
+            <g
+              className={`diagram-node ${stage === 3 ? "active" : ""} ${offline ? "offline" : ""}`}
+            >
+              <rect x="333" y="193" width="112" height="66" rx="3" />
+              <text x="345" y="212" className="diagram-number">
+                03
+              </text>
+              <text x="389" y="237" textAnchor="middle">
+                Kafka
+              </text>
+              {offline && (
+                <path d="m423 201 10 10m0-10-10 10" stroke="currentColor" />
+              )}
+            </g>
+            <g className={`diagram-node ${stage === 4 ? "active" : ""}`}>
+              <rect x="95" y="193" width="110" height="66" rx="3" />
+              <text x="107" y="212" className="diagram-number">
+                04
+              </text>
+              <text x="150" y="237" textAnchor="middle">
+                Scheduler
+              </text>
+            </g>
+            <g className={`diagram-node ${stage === 5 ? "active" : ""}`}>
+              <rect x="95" y="316" width="110" height="66" rx="3" />
+              <text x="107" y="335" className="diagram-number">
+                05
+              </text>
+              <text x="150" y="360" textAnchor="middle">
+                Worker
+              </text>
+            </g>
+            <g
+              className={`diagram-node result-node ${stage === 6 ? "active" : ""}`}
+            >
+              <rect x="333" y="316" width="112" height="66" rx="3" />
+              <text x="345" y="335" className="diagram-number">
+                06
+              </text>
+              <text x="389" y="360" textAnchor="middle">
+                Result
+              </text>
+            </g>
+            <circle
+              className="request-packet"
+              cx={current.x}
+              cy={current.y}
+              r="5"
+            />
+            <g className="diagram-crosses" stroke="currentColor">
+              <path d="M16 16h10m-5-5v10m493-5h10m-5-5v10M16 399h10m-5-5v10m493-5h10m-5-5v10" />
+            </g>
+          </svg>
+        </div>
+      </div>
       <div className="lab-controls">
         <button className="trace-button" onClick={trace} disabled={running}>
           {running
@@ -283,7 +302,7 @@ function RequestLab() {
         <span>SIMPLIFIED CONDUCTOR FLOW</span>
         <span>EXPLANATORY · NO LIVE TRAFFIC</span>
       </div>
-    </figure>
+    </DepthSurface>
   );
 }
 
@@ -334,7 +353,7 @@ const experience = [
 
 function ConductorArt() {
   return (
-    <div className="conductor-art" aria-hidden="true">
+    <DepthSurface className="conductor-art" aria-hidden="true">
       <span className="mono art-eyebrow">A WORKFLOW, WITH A MEMORY.</span>
       <svg viewBox="0 0 520 280" fill="none">
         <g stroke="currentColor" opacity=".45">
@@ -361,9 +380,6 @@ function ConductorArt() {
           <circle cx="215" cy="206" r="5" />
           <circle cx="310" cy="206" r="5" />
         </g>
-        <text x="260" y="147" textAnchor="middle" fill="currentColor">
-          DAG
-        </text>
         <text
           x="215"
           y="255"
@@ -374,17 +390,18 @@ function ConductorArt() {
           RETRY ≠ FORGET
         </text>
       </svg>
+      <ServiceCore />
       <div className="art-bottom mono">
         <span>STATE → INTENT → DELIVERY</span>
         <span>01—06</span>
       </div>
-    </div>
+    </DepthSurface>
   );
 }
 
 function ForgeArt() {
   return (
-    <div className="forge-art" aria-hidden="true">
+    <DepthSurface className="forge-art" aria-hidden="true">
       <span className="mono art-eyebrow">
         A SMALLER CONTRACT. A CLEARER RESULT.
       </span>
@@ -408,12 +425,20 @@ function ForgeArt() {
         <span>LOCAL DRAFTING / INDEPENDENT CHECKS</span>
         <span>PYTHON + OLLAMA</span>
       </div>
-    </div>
+    </DepthSurface>
   );
 }
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const presentation = usePresentation();
+  useEffect(() => {
+    function closeMenu(event) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("keydown", closeMenu);
+    return () => document.removeEventListener("keydown", closeMenu);
+  }, []);
   return (
     <>
       <a className="skip-link" href="#main">
@@ -432,14 +457,17 @@ function App() {
             </span>
           </span>
         </a>
-        <button
-          className="menu-toggle"
-          aria-expanded={menuOpen}
-          aria-controls="navigation"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? "Close" : "Menu"} <span>{menuOpen ? "−" : "+"}</span>
-        </button>
+        <div className="header-actions">
+          <AppearanceControls {...presentation} />
+          <button
+            className="menu-toggle"
+            aria-expanded={menuOpen}
+            aria-controls="navigation"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? "Close" : "Menu"} <span>{menuOpen ? "−" : "+"}</span>
+          </button>
+        </div>
         <nav
           id="navigation"
           className={menuOpen ? "open" : ""}
